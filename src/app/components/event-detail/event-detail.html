@@ -1,0 +1,230 @@
+<div class="loading-state" *ngIf="isLoading">
+  <p>Loading event...</p>
+</div>
+
+<div class="detail-page" *ngIf="!isLoading && event; else notFound">
+  <!-- Hidden File Input -->
+  <input
+    #fileInput
+    type="file"
+    hidden
+    (change)="onFileSelected($event)"
+    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.txt"
+  />
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back to Events
+    </button>
+  </div>
+
+  <!-- Event Header -->
+  <div class="event-header">
+    <div class="header-content">
+      <div class="header-info">
+        <div class="event-type-label">{{ event.type }}</div>
+        <h1>{{ event.title }}</h1>
+        <p class="event-description">{{ event.description }}</p>
+        <div class="header-meta">
+          <div class="meta-item">
+            <span class="meta-label">Date:</span>
+            <span class="meta-value">{{ event.eventDate | date:'MMM d, yyyy' }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Documents:</span>
+            <span class="meta-value">{{ getTotalDocs() }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Sections:</span>
+            <span class="meta-value">{{ event.subSections.length }}</span>
+          </div>
+          <span class="status-badge" [ngClass]="getStatusClass()">{{ event.status }}</span>
+        </div>
+      </div>
+      <div class="header-progress">
+        <div class="progress-info">
+          <span class="progress-label">Completeness</span>
+          <span class="progress-percentage">{{ getProgress() }}%</span>
+        </div>
+        <div class="progress-bar-large">
+          <div class="progress-fill-large" [style.width.%]="getProgress()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub Sections -->
+  <div class="sections-container">
+    <p class="upload-error" *ngIf="uploadError">{{ uploadError }}</p>
+    <p class="upload-error" *ngIf="sectionActionError">{{ sectionActionError }}</p>
+    <div class="sections-toolbar">
+      <div>
+        <h2>Sections</h2>
+        <p>Create sections for this event and upload documents directly into each one.</p>
+      </div>
+      <button class="btn btn-primary" type="button" (click)="openCreateSectionForm()">New section</button>
+    </div>
+
+    <div class="section-create-card" *ngIf="showCreateSectionForm">
+      <div class="section-form-grid">
+        <label>
+          <span>Section name</span>
+          <input type="text" [(ngModel)]="newSection.title" placeholder="Registration, Insurance, Contracts..." />
+        </label>
+        <label>
+          <span>Description</span>
+          <input type="text" [(ngModel)]="newSection.description" placeholder="What belongs in this section?" />
+        </label>
+      </div>
+      <label class="section-checkbox">
+        <input type="checkbox" [(ngModel)]="newSection.isRequired" />
+        <span>Required section</span>
+      </label>
+      <div class="section-form-actions">
+        <button class="btn btn-secondary" type="button" (click)="cancelCreateSection()">Cancel</button>
+        <button class="btn btn-primary" type="button" (click)="createSection()" [disabled]="!newSection.title.trim()">Create section</button>
+      </div>
+    </div>
+
+    <div class="empty-sections" *ngIf="event.subSections.length === 0">
+      <h3>No sections yet</h3>
+      <p>Create your first section, then upload documents into it.</p>
+      <button class="btn btn-primary" type="button" (click)="openCreateSectionForm()">Create first section</button>
+    </div>
+
+    <div class="section-card" *ngFor="let section of event.subSections">
+
+      <!-- Section Header -->
+      <div class="section-header" (click)="toggleSection(section.id)">
+        <div class="section-left">
+          <div class="section-icon-placeholder">{{ section.title.charAt(0) }}</div>
+          <div>
+            <h3>{{ section.title }}</h3>
+            <p *ngIf="section.description">{{ section.description }}</p>
+          </div>
+        </div>
+        <div class="section-right">
+          <span class="doc-count-badge">{{ section.documents.length }} doc<span *ngIf="section.documents.length !== 1">s</span></span>
+          <span class="required-badge" *ngIf="section.isRequired">Required</span>
+          <span class="optional-badge" *ngIf="!section.isRequired">Optional</span>
+          <button
+            class="section-action-btn"
+            type="button"
+            title="Edit section"
+            aria-label="Edit section"
+            (click)="startEditingSection(section, $event)"
+            [disabled]="sectionActionInProgress !== null"
+          >
+            Edit
+          </button>
+          <button
+            class="section-action-btn delete"
+            type="button"
+            title="Delete section"
+            aria-label="Delete section"
+            (click)="deleteSection(section, $event)"
+            [disabled]="sectionActionInProgress !== null"
+          >
+            {{ sectionActionInProgress === section.id ? 'Working...' : 'Delete' }}
+          </button>
+          <button class="toggle-btn" type="button" [class.rotated]="isSectionExpanded(section.id)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="section-edit-form" *ngIf="editingSectionId === section.id">
+        <div class="section-form-grid">
+          <label>
+            <span>Section name</span>
+            <input type="text" [(ngModel)]="editSection.title" />
+          </label>
+          <label>
+            <span>Description</span>
+            <input type="text" [(ngModel)]="editSection.description" />
+          </label>
+        </div>
+        <div class="section-form-actions">
+          <button class="btn btn-secondary" type="button" (click)="cancelEditingSection()">Cancel</button>
+          <button
+            class="btn btn-primary"
+            type="button"
+            (click)="saveSection(section.id)"
+            [disabled]="!editSection.title.trim() || sectionActionInProgress !== null"
+          >
+            {{ sectionActionInProgress === section.id ? 'Saving...' : 'Save changes' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Documents List -->
+      <div class="documents-list" *ngIf="isSectionExpanded(section.id)">
+        <div class="doc-empty" *ngIf="section.documents.length === 0">
+          <p>No documents uploaded yet</p>
+          <button class="btn btn-primary" type="button" (click)="triggerFileUpload(section.id)" [disabled]="uploadingSection !== null">
+            {{ uploadingSection === section.id ? 'Uploading...' : 'Upload document' }}
+          </button>
+        </div>
+
+        <div class="doc-row" *ngFor="let doc of section.documents">
+          <div class="doc-left">
+            <div class="file-icon-box">{{ getFileType(doc.fileType) }}</div>
+            <div class="doc-info">
+              <span class="doc-name">{{ doc.name }}</span>
+              <div class="doc-meta">
+                <span class="cat-badge" [ngClass]="getCategoryColor(doc.category)">{{ doc.category }}</span>
+                <span class="meta-text">{{ doc.uploadDate | date:'MMM d, yyyy' }}</span>
+                <span class="meta-text" *ngIf="doc.referenceNumber">{{ doc.referenceNumber }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="doc-right">
+            <div class="expiry-info" *ngIf="doc.expiryDate">
+              <span class="expiry-label" [class.expiring]="isExpiringSoon(doc)" [class.expired]="isExpired(doc)">
+                {{ isExpired(doc) ? 'Expired' : isExpiringSoon(doc) ? 'Expires soon' : 'Valid' }}
+              </span>
+              <span class="expiry-date">{{ doc.expiryDate | date:'MMM d' }}</span>
+            </div>
+            <div class="doc-actions">
+              <button class="action-btn" type="button" title="View" aria-label="View document">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button class="action-btn" type="button" title="Download" aria-label="Download document">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="8 17 12 21 16 17"></polyline>
+                  <line x1="12" y1="12" x2="12" y2="21"></line>
+                  <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload area -->
+        <div class="upload-zone" *ngIf="section.documents.length > 0" (click)="uploadingSection === null && triggerFileUpload(section.id)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          {{ uploadingSection === section.id ? 'Uploading...' : 'Add document to ' + section.title }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="not-found" *ngIf="!isLoading">
+    <h2>Event not found</h2>
+    <button class="btn btn-primary" (click)="goBack()">Go to Dashboard</button>
+  </div>
+</ng-template>

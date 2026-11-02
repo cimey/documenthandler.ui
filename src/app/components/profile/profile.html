@@ -1,0 +1,102 @@
+<div class="profile-page">
+  <div class="profile-header">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back
+    </button>
+    <h1>My Profile</h1>
+    <div></div>
+  </div>
+
+  <div class="profile-container">
+    <div class="profile-card">
+      <!-- Avatar Section -->
+      <div class="avatar-section">
+        <div class="avatar-large">{{ profileData.avatar }}</div>
+        <div class="user-info">
+          <h2>{{ profileData.name }}</h2>
+          <p>{{ profileData.company }}</p>
+          <p class="join-date">Member since {{ profileData.joinDate | date: 'MMM yyyy' }}</p>
+        </div>
+        <button class="btn btn-primary" (click)="startEditing()" *ngIf="!isEditing">Edit Profile</button>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="profile-section">
+        <h3>Contact Information</h3>
+        <div *ngIf="!isEditing" class="info-group">
+          <div class="info-item">
+            <label>Email</label>
+            <p>{{ profileData.email }}</p>
+          </div>
+          <div class="info-item">
+            <label>Phone</label>
+            <p>{{ profileData.phone }}</p>
+          </div>
+          <div class="info-item">
+            <label>Country</label>
+            <p>{{ profileData.country }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="isEditing" class="edit-form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input id="name" type="text" class="form-input" [(ngModel)]="editData.name" name="name" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" class="form-input" [(ngModel)]="editData.email" name="email" />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input id="phone" type="tel" class="form-input" [(ngModel)]="editData.phone" name="phone" />
+          </div>
+          <div class="form-group">
+            <label for="company">Company</label>
+            <input id="company" type="text" class="form-input" [(ngModel)]="editData.company" name="company" />
+          </div>
+          <div class="form-group">
+            <label for="country">Country</label>
+            <input id="country" type="text" class="form-input" [(ngModel)]="editData.country" name="country" />
+          </div>
+
+          <div class="edit-actions">
+            <button class="btn btn-secondary" (click)="cancelEditing()">Cancel</button>
+            <button class="btn btn-primary" (click)="saveProfile()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Settings -->
+      <div class="profile-section">
+        <h3>Account Settings</h3>
+        <div class="settings-list">
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Two-Factor Authentication</h4>
+              <p>Secure your account with 2FA</p>
+            </div>
+            <button class="btn btn-secondary">Enable</button>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Change Password</h4>
+              <p>Update your password regularly</p>
+            </div>
+            <button class="btn btn-secondary">Change</button>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Download Your Data</h4>
+              <p>Export all your documents and events</p>
+            </div>
+            <button class="btn btn-secondary">Download</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

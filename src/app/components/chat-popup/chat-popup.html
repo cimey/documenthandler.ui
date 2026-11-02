@@ -1,0 +1,57 @@
+<!-- Floating Chat Button -->
+<button class="chat-fab" (click)="toggleChat()" [class.open]="isOpen" title="Ask about your documents">
+  <svg *ngIf="!isOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+  <span *ngIf="isOpen">✕</span>
+</button>
+
+<!-- Chat Panel -->
+<div class="chat-panel" [class.visible]="isOpen">
+  <div class="chat-header">
+    <div class="chat-title">
+      <div class="title-text">Document Assistant</div>
+      <div class="title-status">
+        <span class="status-dot"></span>
+        {{ isTyping ? 'Typing...' : 'Online' }}
+      </div>
+    </div>
+    <button class="chat-close-btn" (click)="closeChat()">✕</button>
+  </div>
+
+  <div class="messages-area">
+    <div class="message-bubble" *ngFor="let msg of messages" [ngClass]="msg.role">
+      <div class="bubble-content" [innerHTML]="formatContent(msg.content)"></div>
+      <div class="bubble-time">{{ msg.timestamp | date: 'HH:mm' }}</div>
+    </div>
+
+    <div class="message-bubble assistant typing-bubble" *ngIf="isTyping">
+      <div class="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div #messagesEnd></div>
+  </div>
+
+  <div class="suggestions" *ngIf="messages.length <= 1 && !isTyping">
+    <div class="suggestion-chip" *ngFor="let q of getSuggestedQuestions()" (click)="useSuggestion(q)">
+      {{ q }}
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <textarea
+      class="chat-input"
+      placeholder="Ask something..."
+      [(ngModel)]="inputText"
+      (keydown)="onKeyDown($event)"
+      rows="1"
+    ></textarea>
+    <button class="send-btn" (click)="sendMessage()" [disabled]="!inputText.trim() || isTyping">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.40 22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 L4.13399899,1.16071899 C3.50612381,-0.0454487047 2.40,0.0654536474 1.77946707,0.6283166384 C0.994623095,1.4138035 0.837654326,2.5045813 1.15159189,3.33007823 L3.03521743,9.77108115 C3.03521743,9.92817852 3.34915502,10.0852759 3.50612381,10.0852759 L16.6915026,10.8707628 C16.6915026,10.8707628 17.1624089,10.8707628 17.1624089,11.1278602 C17.1624089,11.3849575 16.6915026,11.4744748 16.6915026,11.4744748 Z"></path>
+      </svg>
+    </button>
+  </div>
+</div>

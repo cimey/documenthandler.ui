@@ -1,0 +1,100 @@
+<div class="dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1>Document Vault</h1>
+      <p>Organize all your important documents by event</p>
+    </div>
+    <app-create-event (eventCreated)="onEventCreated()" (closed)="onEventCreated()"></app-create-event>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ events.length }}</div>
+      <div class="stat-label">Events</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ totalDocs }}</div>
+      <div class="stat-label">Documents</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ getActiveCount() }}</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ expiringCount }}</div>
+      <div class="stat-label">Expiring Soon</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input
+        type="text"
+        placeholder="Search events..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()"
+        class="search-input"
+      />
+    </div>
+    <select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()" class="filter-select">
+      <option *ngFor="let s of statusOptions" [value]="s">{{ s === 'All' ? 'All Statuses' : s }}</option>
+    </select>
+    <select [(ngModel)]="selectedType" (ngModelChange)="onTypeChange()" class="filter-select">
+      <option *ngFor="let t of typeOptions" [value]="t">{{ t === 'All' ? 'All Types' : t }}</option>
+    </select>
+    <button class="btn btn-ghost" (click)="clearFilters()" *ngIf="searchQuery || selectedStatus !== 'All' || selectedType !== 'All'">
+      Reset
+    </button>
+  </div>
+
+  <!-- Events Grid -->
+  <div class="events-grid" *ngIf="filteredEvents.length > 0; else noResults">
+    <div class="event-card" *ngFor="let event of filteredEvents" (click)="openEvent(event.id)">
+      <div class="card-header">
+        <div class="event-info">
+          <div class="event-type">{{ event.type }}</div>
+          <h3 class="event-title">{{ event.title }}</h3>
+          <p class="event-desc">{{ event.description }}</p>
+        </div>
+        <span class="status-badge" [ngClass]="event.status.toLowerCase()">{{ event.status }}</span>
+      </div>
+      <div class="card-body">
+        <div class="meta-row">
+          <span class="meta-item">
+            <strong>{{ getDocCount(event) }}</strong> documents
+          </span>
+          <span class="meta-item">
+            <strong>{{ event.subSections.length }}</strong> sections
+          </span>
+        </div>
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>Completeness</span>
+            <span class="progress-value">{{ getProgress(event) }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getProgress(event)"></div>
+          </div>
+        </div>
+        <div class="tags-row">
+          <span class="tag" *ngFor="let tag of event.tags | slice:0:3">{{ tag }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noResults>
+    <div class="empty-state">
+      <h3>No events found</h3>
+      <p>Try adjusting your search filters</p>
+      <button class="btn btn-secondary" (click)="clearFilters()">Reset Filters</button>
+    </div>
+  </ng-template>
+</div>

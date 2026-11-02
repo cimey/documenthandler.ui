@@ -1,0 +1,143 @@
+<div class="view-document-page" *ngIf="!documentNotFound; else notFound">
+  <!-- Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back
+    </button>
+    <h1>Document Details</h1>
+    <div></div>
+  </div>
+
+  <!-- Document Content -->
+  <div class="document-container" *ngIf="document">
+    <!-- Document Preview -->
+    <div class="preview-section">
+      <div class="file-preview-placeholder">
+        <div class="file-type-large">{{ document.fileType.toUpperCase() }}</div>
+        <p>{{ document.name }}</p>
+        <span class="file-size">{{ document.size }}</span>
+      </div>
+    </div>
+
+    <!-- Document Info Card -->
+    <div class="info-card">
+      <!-- Title and Status -->
+      <div class="info-header">
+        <div>
+          <h2>{{ document.name }}</h2>
+          <p class="breadcrumb">
+            <a href="javascript:void(0)" (click)="goToEvent()">{{ eventTitle }}</a>
+            <span> / </span>
+            <span>{{ subSectionName }}</span>
+          </p>
+        </div>
+        <span class="status-badge" [ngClass]="getStatusClass()">
+          {{ getStatusLabel() }}
+        </span>
+      </div>
+
+      <!-- Document Metadata -->
+      <div class="info-section">
+        <h3>Document Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>File Name</label>
+            <p>{{ document.name }}</p>
+          </div>
+          <div class="info-item">
+            <label>File Type</label>
+            <p>{{ document.fileType.toUpperCase() }}</p>
+          </div>
+          <div class="info-item">
+            <label>File Size</label>
+            <p>{{ document.size }}</p>
+          </div>
+          <div class="info-item">
+            <label>Category</label>
+            <p class="category-tag" [ngClass]="document.category.toLowerCase()">
+              {{ document.category }}
+            </p>
+          </div>
+          <div class="info-item">
+            <label>Reference Number</label>
+            <p>{{ document.referenceNumber || 'None' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Information -->
+      <div class="info-section">
+        <h3>Upload Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Upload Date</label>
+            <p>{{ document.uploadDate | date: 'MMMM d, yyyy' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Expiry Date</label>
+            <p *ngIf="document.expiryDate; else noExpiry">
+              {{ document.expiryDate | date: 'MMMM d, yyyy' }}
+            </p>
+            <ng-template #noExpiry>
+              <p>No expiry date</p>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="info-section" *ngIf="document.tags && document.tags.length > 0">
+        <h3>Tags</h3>
+        <div class="tags-row">
+          <span class="tag" *ngFor="let tag of document.tags">{{ tag }}</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-buttons">
+        <button class="btn btn-secondary" (click)="goToEvent()">Go to Event</button>
+        <button class="btn btn-primary" (click)="downloadDocument()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="8 17 12 21 16 17"></polyline>
+            <line x1="12" y1="12" x2="12" y2="21"></line>
+            <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path>
+          </svg>
+          Download
+        </button>
+        <button class="btn btn-danger" (click)="deleteDocument()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Not Found Template -->
+<ng-template #notFound>
+  <div class="not-found-page">
+    <div class="page-header">
+      <button class="back-btn" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </button>
+      <h1>Document Not Found</h1>
+      <div></div>
+    </div>
+    <div class="not-found-content">
+      <h2>The document you're looking for doesn't exist</h2>
+      <p>It may have been deleted or moved to another event.</p>
+      <button class="btn btn-primary" (click)="goBack()">Go to Documents</button>
+    </div>
+  </div>
+</ng-template>
